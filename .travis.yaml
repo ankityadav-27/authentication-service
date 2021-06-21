@@ -1,0 +1,25 @@
+language: java
+sudo: required
+jdk: oraclejdk8
+
+services:
+- docker
+
+env:
+  global:
+  - COMMIT=${TRAVIS_COMMIT::7}
+
+cache:
+  directories:
+    - '$HOME/.m2/repository'
+
+script:
+  - ./mvnw clean install -B
+
+after_success:
+  - docker login -u ankityadav27 -p Safeace@135
+  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH; fi`
+  - export IMAGE_NAME=ankityadav27/authentication-service
+  - docker build -t $IMAGE_NAME:$COMMIT .
+  - docker tag $IMAGE_NAME:$COMMIT $IMAGE_NAME:$TAG
+  - docker push $IMAGE_NAME
